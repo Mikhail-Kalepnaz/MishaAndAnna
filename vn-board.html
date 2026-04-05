@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -312,6 +313,81 @@ body {
   opacity: 0.6;
 }
 .connection-line.dashed { stroke-dasharray: 6 4; }
+/* ═══════════════════════════ CONNECTION EDITOR ═══════════════════════════ */
+#conn-editor {
+  position: fixed; z-index: 2200;
+  background: rgba(13,17,23,0.98);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--border2);
+  border-radius: 14px; padding: 20px; width: 300px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+  display: none;
+}
+#conn-editor.open { display: block; }
+#conn-editor h4 {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 14px;
+}
+.conn-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+.conn-type-btn {
+  padding: 8px 6px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--surface); color: var(--text2);
+  font-family: 'DM Mono', monospace; font-size: 10px; cursor: pointer;
+  transition: all .15s; text-align: center; line-height: 1.4;
+}
+.conn-type-btn:hover { border-color: var(--border3); color: var(--text); }
+.conn-type-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.08); }
+.conn-type-btn .ct-icon { font-size: 14px; display: block; margin-bottom: 3px; }
+.conn-field-row { margin-bottom: 10px; }
+.conn-field-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 5px; }
+.conn-field {
+  width: 100%; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 6px; color: var(--text); font-family: 'DM Mono', monospace;
+  font-size: 11px; padding: 7px 10px; outline: none;
+}
+.conn-field:focus { border-color: var(--accent); }
+.conn-colors { display: flex; gap: 5px; flex-wrap: wrap; }
+.conn-color-dot {
+  width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: all .1s;
+}
+.conn-color-dot:hover, .conn-color-dot.active { border-color: white; transform: scale(1.15); }
+.conn-editor-btns { display: flex; gap: 6px; margin-top: 14px; }
+.conn-editor-btns .btn { flex: 1; font-size: 11px; padding: 7px; }
+
+/* ═══════════════════════════ MULTIPLAYER CURSORS ═══════════════════════════ */
+.peer-cursor {
+  position: absolute; pointer-events: none; z-index: 800;
+  transition: left .1s linear, top .1s linear;
+}
+.peer-cursor-svg { width: 20px; height: 20px; }
+.peer-cursor-label {
+  position: absolute; left: 16px; top: 0px;
+  font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600;
+  padding: 2px 7px; border-radius: 4px; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3); color: #000;
+}
+#presence-bar {
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 12px; border-left: 1px solid var(--border); height: 100%;
+}
+.presence-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: #000;
+  border: 2px solid var(--bg); margin-left: -6px; cursor: default;
+  position: relative;
+}
+.presence-dot:first-child { margin-left: 0; }
+.presence-dot::after {
+  content: attr(data-name); position: absolute; bottom: -20px; left: 50%;
+  transform: translateX(-50%); background: var(--surface2); color: var(--text);
+  font-size: 9px; padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+  border: 1px solid var(--border2); opacity: 0; pointer-events: none; transition: opacity .15s;
+}
+.presence-dot:hover::after { opacity: 1; }
+#presence-count { font-size: 10px; color: var(--text3); white-space: nowrap; }
+
 
 /* ═══════════════════════════ MINI-MAP ═══════════════════════════ */
 #minimap {
@@ -521,6 +597,230 @@ body.connect-mode .card:hover { border-color: var(--c-route); }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ═══════════════════════════ ANCHOR POINTS ═══════════════════════════ */
+.card-anchor {
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border3);
+  opacity: 0;
+  transition: opacity .15s, background .1s, transform .1s;
+  cursor: crosshair;
+  z-index: 20;
+  transform: scale(0.7);
+}
+.card:hover .card-anchor { opacity: 1; transform: scale(1); }
+.card-anchor:hover { background: var(--accent); border-color: var(--accent); transform: scale(1.3) !important; box-shadow: 0 0 6px var(--accent); }
+.card-anchor.top    { top: -5px;    left: 50%; transform: translateX(-50%) scale(0.7); }
+.card-anchor.bottom { bottom: -5px; left: 50%; transform: translateX(-50%) scale(0.7); }
+.card-anchor.left   { left: -5px;   top: 50%;  transform: translateY(-50%) scale(0.7); }
+.card-anchor.right  { right: -5px;  top: 50%;  transform: translateY(-50%) scale(0.7); }
+.card:hover .card-anchor.top    { transform: translateX(-50%) scale(1); }
+.card:hover .card-anchor.bottom { transform: translateX(-50%) scale(1); }
+.card:hover .card-anchor.left   { transform: translateY(-50%) scale(1); }
+.card:hover .card-anchor.right  { transform: translateY(-50%) scale(1); }
+.card-anchor.top:hover    { transform: translateX(-50%) scale(1.3) !important; }
+.card-anchor.bottom:hover { transform: translateX(-50%) scale(1.3) !important; }
+.card-anchor.left:hover   { transform: translateY(-50%) scale(1.3) !important; }
+.card-anchor.right:hover  { transform: translateY(-50%) scale(1.3) !important; }
+
+/* Drag connection line preview */
+#drag-conn-svg {
+  position: absolute; top: 0; left: 0;
+  width: 6000px; height: 4000px;
+  pointer-events: none; z-index: 5;
+}
+#drag-conn-line {
+  fill: none; stroke: var(--accent); stroke-width: 1.5;
+  stroke-dasharray: 6 4; opacity: 0.7; display: none;
+}
+
+/* ═══════════════════════════ TIMELINE VIEW ═══════════════════════════ */
+#timeline-outer {
+  position: fixed; top: 52px; left: 0; right: 0; bottom: 0;
+  overflow-x: auto; overflow-y: hidden;
+  background: var(--bg);
+  background-image:
+    linear-gradient(to bottom, rgba(79,142,247,0.03) 0%, transparent 60%);
+  display: none;
+  z-index: 2;
+}
+#timeline-outer.active { display: block; }
+#timeline-inner {
+  position: relative;
+  height: 100%;
+  padding: 60px 60px 40px;
+  display: flex; align-items: flex-start; gap: 0;
+  min-width: max-content;
+}
+/* Axis line */
+#timeline-axis {
+  position: absolute;
+  left: 0; right: 0;
+  top: 130px;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--border2) 5%, var(--border2) 95%, transparent);
+  pointer-events: none;
+}
+.tl-act-group {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 0; position: relative; min-width: 200px;
+}
+.tl-act-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--text3);
+  padding: 0 16px; margin-bottom: 12px;
+}
+.tl-scenes-row {
+  display: flex; flex-direction: row; align-items: center; gap: 0;
+  position: relative;
+}
+.tl-card {
+  position: relative;
+  width: 160px; flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  margin: 0 12px;
+  padding: 12px;
+  cursor: grab;
+  transition: border-color .15s, box-shadow .15s;
+  top: 0;
+}
+.tl-card:hover { border-color: var(--border3); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.tl-card.dragging-tl { opacity: 0.5; cursor: grabbing; }
+.tl-card-accent { height: 2px; border-radius: 3px; margin-bottom: 8px; }
+.tl-card-type { font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 4px; }
+.tl-card-title { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.tl-card-body { font-size: 10px; color: var(--text2); margin-top: 6px; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+/* Connector tick on axis */
+.tl-tick {
+  position: absolute; left: 50%; top: -26px;
+  width: 1px; height: 26px;
+  background: var(--border2);
+  transform: translateX(-50%);
+}
+.tl-dot {
+  position: absolute; left: 50%; top: -32px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--c-scene);
+  border: 2px solid var(--bg);
+  transform: translateX(-50%);
+}
+/* Add scene button on timeline */
+.tl-add-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1.5px dashed var(--border2); background: none;
+  color: var(--text3); font-size: 18px; cursor: pointer;
+  flex-shrink: 0; margin: 0 20px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.tl-add-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.06); }
+/* View switcher in header */
+#view-switcher {
+  display: flex; align-items: center; gap: 2px;
+}
+.view-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 5px;
+  border: 1px solid transparent; background: transparent;
+  color: var(--text3); font-family: 'DM Mono', monospace;
+  font-size: 10px; cursor: pointer; transition: all .15s;
+}
+.view-btn:hover { background: var(--surface); border-color: var(--border2); color: var(--text2); }
+.view-btn.active { background: var(--surface2); border-color: var(--border3); color: var(--text); }
+
+/* ═══════════════════════════ LOCATION CONTAINER ═══════════════════════════ */
+.card.type-location.drop-target {
+  border-color: var(--c-loc) !important;
+  box-shadow: 0 0 0 2px var(--c-loc), 0 0 30px rgba(79,142,247,0.2) !important;
+  background: rgba(79,142,247,0.06) !important;
+}
+.card-children-list {
+  padding: 0 12px 8px;
+  display: flex; flex-wrap: wrap; gap: 4px;
+}
+.child-chip {
+  font-size: 9px; padding: 2px 8px; border-radius: 4px;
+  background: rgba(79,142,247,0.1); color: var(--c-loc);
+  border: 1px solid rgba(79,142,247,0.2);
+  cursor: pointer;
+}
+.child-chip:hover { background: rgba(79,142,247,0.2); }
+
+/* ═══════════════════════════ IMAGE THUMBNAIL ═══════════════════════════ */
+.card-image-area {
+  margin: 0 12px 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+.card-image-area img {
+  width: 100%; max-height: 120px;
+  object-fit: cover; display: block;
+  border-radius: 6px;
+}
+.card-image-upload {
+  width: 100%; height: 48px;
+  border: 1.5px dashed var(--border2);
+  border-radius: 6px;
+  background: none; cursor: pointer;
+  color: var(--text3); font-size: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all .15s;
+}
+.card-image-upload:hover { border-color: var(--border3); color: var(--text2); background: var(--surface2); }
+.card-image-remove {
+  position: absolute; top: 4px; right: 4px;
+  width: 18px; height: 18px; border-radius: 4px;
+  background: rgba(0,0,0,0.7); border: none; color: var(--text2);
+  font-size: 10px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .15s;
+}
+.card-image-area:hover .card-image-remove { opacity: 1; }
+
+/* ═══════════════════════════ EXPORT PANEL ═══════════════════════════ */
+#export-panel {
+  position: fixed; top: 52px; right: 0; bottom: 0;
+  width: 260px;
+  background: rgba(8,11,16,0.97);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid var(--border);
+  transform: translateX(100%);
+  transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 790; display: flex; flex-direction: column;
+  padding: 20px 16px;
+  gap: 12px;
+}
+#export-panel.open { transform: translateX(0); }
+#export-panel h3 {
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--text);
+  margin-bottom: 4px;
+}
+.export-option {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px; padding: 14px;
+  cursor: pointer; transition: all .15s;
+}
+.export-option:hover { border-color: var(--border3); background: var(--surface2); }
+.export-option-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; font-family: 'Syne', sans-serif; }
+.export-option-desc { font-size: 10px; color: var(--text3); line-height: 1.5; }
+.export-option .export-ic { font-size: 20px; margin-bottom: 8px; }
+#export-close {
+  margin-top: auto; padding: 8px;
+  border-radius: 7px; border: 1px solid var(--border2);
+  background: none; color: var(--text3); font-family: 'DM Mono', monospace;
+  font-size: 11px; cursor: pointer;
+}
+#export-close:hover { border-color: var(--border3); color: var(--text); }
 </style>
 </head>
 <body>
@@ -577,8 +877,20 @@ body.connect-mode .card:hover { border-color: var(--c-route); }
       <button class="tb-btn" onclick="undoAction()">↩ Отмена</button>
       <button class="tb-btn" onclick="clearBoard()" style="color:var(--c-char)">⚠ Очистить</button>
     </div>
+
+    <div class="tb-sep"></div>
+
+    <div id="view-switcher">
+      <button class="view-btn active" id="view-board-btn" onclick="switchView('board')" title="Доска">⊞ Доска</button>
+      <button class="view-btn" id="view-timeline-btn" onclick="switchView('timeline')" title="Временная шкала">⟶ Шкала</button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <button class="tb-btn" onclick="toggleExportPanel()" title="Экспорт">↑ Экспорт</button>
   </div>
 
+  <div id="presence-bar"><span id="presence-count"></span></div>
   <div id="header-right">
     <div id="zoom-display">100%</div>
     <div id="save-status" class="saved">
@@ -592,8 +904,36 @@ body.connect-mode .card:hover { border-color: var(--c-route); }
 <div id="board-outer">
   <div id="board">
     <svg id="connections-svg"></svg>
+    <svg id="drag-conn-svg"><path id="drag-conn-line"/></svg>
   </div>
   <div id="sel-box"></div>
+</div>
+
+<!-- TIMELINE VIEW -->
+<div id="timeline-outer">
+  <div id="timeline-axis"></div>
+  <div id="timeline-inner"></div>
+</div>
+
+<!-- EXPORT PANEL -->
+<div id="export-panel">
+  <h3>⬆ Экспорт</h3>
+  <div class="export-option" onclick="exportPNG()">
+    <div class="export-ic">🖼</div>
+    <div class="export-option-title">PNG — скриншот доски</div>
+    <div class="export-option-desc">Сохраняет все карточки и связи как изображение. Используйте для шеринга и презентаций.</div>
+  </div>
+  <div class="export-option" onclick="exportMarkdown()">
+    <div class="export-ic">📄</div>
+    <div class="export-option-title">Markdown — структура текстом</div>
+    <div class="export-option-desc">Выгружает все карточки по типам с тегами и описаниями. Удобно переносить в сценарий.</div>
+  </div>
+  <div class="export-option" onclick="exportJSON()">
+    <div class="export-ic">{ }</div>
+    <div class="export-option-title">JSON — данные доски</div>
+    <div class="export-option-desc">Полный дамп всех карточек и связей. Для резервной копии или переноса.</div>
+  </div>
+  <button id="export-close" onclick="toggleExportPanel()">✕ Закрыть</button>
 </div>
 
 <!-- MINIMAP -->
@@ -636,12 +976,13 @@ body.connect-mode .card:hover { border-color: var(--c-route); }
 <div id="hint">
   SCROLL — масштаб &nbsp;·&nbsp; DRAG — перемещение<br>
   DOUBLE-CLICK — новая карточка &nbsp;·&nbsp; DEL — удалить выбранное<br>
-  CTRL+Z — отмена &nbsp;·&nbsp; SPACE — всё в кадр
+  CTRL+Z — отмена &nbsp;·&nbsp; SPACE — всё в кадр &nbsp;·&nbsp; Якоря — тяните для связи
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getDatabase, ref, set, onValue, onDisconnect, serverTimestamp, remove, push } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyA-qRTFlszcMafJv1eesYg-PUxsxYoo28U",
@@ -652,6 +993,7 @@ const app = initializeApp({
   appId: "1:822036073579:web:cd59fd4f5362b5f0bb752e"
 });
 const db = getFirestore(app);
+const rtdb = getDatabase(app);
 const PROJECT_ID = 'main';
 
 // ════════════════════════════════
@@ -750,6 +1092,19 @@ function setSaveStatus(state, text) {
 // ════════════════════════════════
 const boardEl = document.getElementById('board');
 const outerEl = document.getElementById('board-outer');
+const dragConnLine = document.getElementById('drag-conn-line');
+
+// Expose all functions to global scope immediately (functions are hoisted)
+// so inline onclick handlers always work regardless of later runtime errors
+Object.assign(window, {
+  addCard, deleteCard, duplicateCard, openInspector, closeInspector,
+  updateCard, updateCardSize, setCardColor, addTag, removeTag,
+  toggleConnectMode, toggleSearch, doSearch, jumpToCard,
+  fitAll, undoAction, clearBoard, closeModal,
+  switchView, toggleExportPanel, exportMarkdown, exportJSON, exportPNG,
+  uploadCardImage, removeCardImage,
+  openConnEditor, closeConnEditor, setConnType, updateEditingConn, pickConnColor, deleteEditingConn,
+});
 
 function applyTransform() {
   boardEl.style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
@@ -833,6 +1188,10 @@ function renderCard(c) {
 
   el.innerHTML = `
     <div class="card-accent-bar"></div>
+    <div class="card-anchor top" data-anchor="top"></div>
+    <div class="card-anchor bottom" data-anchor="bottom"></div>
+    <div class="card-anchor left" data-anchor="left"></div>
+    <div class="card-anchor right" data-anchor="right"></div>
     <div class="card-header" data-drag>
       <div class="card-type-pill">${m.label}</div>
       <input class="card-title-input" value="${escHtml(c.title)}" placeholder="Название…" spellcheck="false">
@@ -842,15 +1201,19 @@ function renderCard(c) {
         <button class="card-btn del" onclick="deleteCard('${c.id}')" title="Удалить">✕</button>
       </div>
     </div>
+    ${c.image ? `<div class="card-image-area"><img src="${c.image}" alt=""><button class="card-image-remove" onclick="removeCardImage('${c.id}')">✕</button></div>` :
+      (c.type === 'character' || c.type === 'background') ?
+      `<div class="card-image-area"><label class="card-image-upload" title="Загрузить изображение">🖼 Добавить картинку<input type="file" accept="image/*" style="display:none" onchange="uploadCardImage('${c.id}',this)"></label></div>` : ''}
     <div class="card-body-area">
       <textarea class="card-textarea" placeholder="Описание, идеи, детали…">${escHtml(c.body)}</textarea>
     </div>
+    ${c.type === 'location' && c.children && c.children.length ? `<div class="card-children-list">${c.children.map(cid => cards[cid] ? `<span class="child-chip" onclick="jumpToCard('${cid}')">${escHtml(cards[cid].title)}</span>` : '').join('')}</div>` : ''}
     <div class="card-tags">
       ${c.tags.map(t=>`<span class="tag" onclick="removeTag('${c.id}','${t}')">${t} ✕</span>`).join('')}
       <span class="tag tag-add" onclick="addTag('${c.id}')">+ тег</span>
     </div>
     <div class="card-footer">
-      <div class="card-meta">${c.status || '—'}</div>
+      <div class="card-meta">${c.status || '—'}${c.locationId ? ` · <span style="color:var(--c-loc)">${escHtml(cards[c.locationId]?.title||'')}</span>` : ''}</div>
       <div class="card-color-dots">
         ${COLORS.map(col=>`<div class="color-dot ${c.color===col?'active':''}" style="background:${col}" onclick="setCardColor('${c.id}','${col}')"></div>`).join('')}
       </div>
@@ -878,7 +1241,15 @@ function renderCard(c) {
 function attachCardEvents(el, c) {
   const id = c.id;
 
+  // ── Anchor drag-to-connect ──
   el.addEventListener('mousedown', e => {
+    const anchor = e.target.closest('.card-anchor');
+    if (anchor) {
+      e.preventDefault(); e.stopPropagation();
+      startAnchorDrag(id, anchor, e);
+      return;
+    }
+
     if (connectMode) {
       handleConnect(id); return;
     }
@@ -886,7 +1257,7 @@ function attachCardEvents(el, c) {
       e.preventDefault(); e.stopPropagation();
       startResize(el, id, e); return;
     }
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || e.target.tagName === 'SPAN') return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || e.target.tagName === 'SPAN' || e.target.tagName === 'LABEL') return;
     e.preventDefault(); e.stopPropagation();
 
     if (!e.shiftKey) {
@@ -898,7 +1269,7 @@ function attachCardEvents(el, c) {
       if (selectedCards.has(id)) deselectCard(id);
       else selectCard(id);
     }
-    startDragCards(e);
+    startDragCards(e, id);
   });
 
   el.addEventListener('dblclick', e => {
@@ -907,13 +1278,14 @@ function attachCardEvents(el, c) {
   });
 }
 
-function startDragCards(e) {
+function startDragCards(e, draggedId) {
   if (selectedCards.size === 0) return;
   const starts = {};
   for (const id of selectedCards) {
     starts[id] = { x: cards[id].x, y: cards[id].y };
   }
   const sx = e.clientX, sy = e.clientY;
+  let lastDropTarget = null;
 
   function onMove(e) {
     const dx = (e.clientX - sx) / scale;
@@ -926,8 +1298,44 @@ function startDragCards(e) {
     }
     renderConnections();
     updateMinimap();
+
+    // Highlight location drop-targets
+    if (draggedId && cards[draggedId] && cards[draggedId].type !== 'location') {
+      const dc = cards[draggedId];
+      let found = null;
+      for (const loc of Object.values(cards)) {
+        if (loc.type !== 'location' || selectedCards.has(loc.id)) continue;
+        if (dc.x + dc.w/2 > loc.x && dc.x + dc.w/2 < loc.x + loc.w &&
+            dc.y + dc.h/2 > loc.y && dc.y + dc.h/2 < loc.y + loc.h) {
+          found = loc.id; break;
+        }
+      }
+      if (found !== lastDropTarget) {
+        if (lastDropTarget) document.getElementById('card-'+lastDropTarget)?.classList.remove('drop-target');
+        if (found) document.getElementById('card-'+found)?.classList.add('drop-target');
+        lastDropTarget = found;
+      }
+    }
   }
   function onUp() {
+    // Assign to location if dropped onto one
+    if (draggedId && cards[draggedId] && cards[draggedId].type !== 'location' && lastDropTarget) {
+      const dc = cards[draggedId];
+      const oldLoc = dc.locationId;
+      // Remove from old location
+      if (oldLoc && cards[oldLoc]) {
+        cards[oldLoc].children = (cards[oldLoc].children || []).filter(cid => cid !== draggedId);
+        renderCard(cards[oldLoc]);
+      }
+      dc.locationId = lastDropTarget;
+      const locCard = cards[lastDropTarget];
+      if (!locCard.children) locCard.children = [];
+      if (!locCard.children.includes(draggedId)) locCard.children.push(draggedId);
+      renderCard(locCard);
+      renderCard(dc);
+      toast(`Привязан к «${locCard.title}»`);
+    }
+    if (lastDropTarget) document.getElementById('card-'+lastDropTarget)?.classList.remove('drop-target');
     scheduleSave();
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup', onUp);
@@ -1031,8 +1439,7 @@ function cardCenter(id) {
 function renderConnections() {
   svgEl.innerHTML = '';
   const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
-  // Arrow markers for each color
-  const markerColors = ['#4f8ef7','#f76b4f','#4fdc8e','#f7c84f','#c44ff7','#f74fa8','#4ff7e8','#f7a34f','#8a9ab5'];
+  const markerColors = ['#4f8ef7','#f76b4f','#4fdc8e','#f7c84f','#c44ff7','#f74fa8','#4ff7e8','#f7a34f','#8a9ab5','#ffffff'];
   markerColors.forEach((col,i) => {
     const m = document.createElementNS('http://www.w3.org/2000/svg','marker');
     m.setAttribute('id','arr'+i); m.setAttribute('viewBox','0 0 10 10');
@@ -1047,45 +1454,149 @@ function renderConnections() {
   });
   svgEl.appendChild(defs);
 
+  // Group connections by source to detect choice branches
+  const fromGroups = {};
+  for (const conn of connections) {
+    if (!fromGroups[conn.from]) fromGroups[conn.from] = [];
+    fromGroups[conn.from].push(conn);
+  }
+
   for (const conn of connections) {
     const a = cardCenter(conn.from), b = cardCenter(conn.to);
     if (!a || !b) continue;
+    const ctype = conn.ctype || 'flow';
+    const col = conn.color || CONN_TYPE_COLORS[ctype] || '#4f8ef7';
+    const ci = markerColors.indexOf(col);
+    const sibs = fromGroups[conn.from] || [];
+    const sibIdx = sibs.indexOf(conn);
+
+    // Curve control: fan out siblings, add extra curve for choices
     const dx = b.x - a.x, dy = b.y - a.y;
-    const mx = a.x + dx*0.5, my = a.y + dy*0.5 - Math.min(80, Math.abs(dx)*0.3);
+    const fanOffset = sibs.length > 1 ? (sibIdx - (sibs.length-1)/2) * 60 : 0;
+    const baseCurve = Math.min(80, Math.abs(dx)*0.3);
+    const mx = a.x + dx*0.5 - dy*0.1 + fanOffset;
+    const my = a.y + dy*0.5 - baseCurve;
 
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d', `M${a.x},${a.y} Q${mx},${my} ${b.x},${b.y}`);
-    const col = conn.color || '#4f8ef7';
-    const ci = markerColors.indexOf(col);
     path.setAttribute('stroke', col);
-    path.setAttribute('stroke-width', '1.5');
     path.setAttribute('fill', 'none');
-    path.setAttribute('opacity', '0.7');
-    if (conn.style === 'dashed') path.setAttribute('stroke-dasharray','6 4');
+    path.setAttribute('opacity', ctype === 'ref' ? '0.4' : '0.75');
+    // Stroke width varies by type
+    const sw = ctype === 'choice' ? '2' : ctype === 'condition' ? '1.5' : '1.5';
+    path.setAttribute('stroke-width', sw);
+    if (conn.style === 'dashed' || ctype === 'ref') path.setAttribute('stroke-dasharray','6 4');
+    if (conn.style === 'dotted') path.setAttribute('stroke-dasharray','2 4');
     if (ci >= 0) path.setAttribute('marker-end',`url(#arr${ci})`);
     path.style.pointerEvents = 'stroke';
     path.style.cursor = 'pointer';
-    path.addEventListener('click', () => {
-      if (confirm(`Удалить связь?`)) {
-        connections = connections.filter(c => c !== conn);
-        renderConnections(); scheduleSave();
-      }
+    path.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openConnEditor(conn, mx, my);
     });
     svgEl.appendChild(path);
 
-    if (conn.label) {
-      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-      text.setAttribute('x', mx); text.setAttribute('y', my-6);
-      text.setAttribute('text-anchor','middle');
-      text.setAttribute('font-size','10');
-      text.setAttribute('font-family','DM Mono, monospace');
-      text.setAttribute('fill', col);
-      text.setAttribute('opacity','0.9');
-      text.textContent = conn.label;
-      svgEl.appendChild(text);
+    // ── Label / choice bubble ──
+    if (ctype === 'choice') {
+      // Diamond choice node
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.setAttribute('transform', `translate(${mx},${my})`);
+      g.style.cursor = 'pointer';
+      g.addEventListener('click', (e) => { e.stopPropagation(); openConnEditor(conn, mx, my); });
+
+      const diamond = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      const choiceText = conn.choiceText || conn.label || 'Выбор';
+      const tw = Math.max(60, choiceText.length * 6 + 20);
+      const th = 22;
+      diamond.setAttribute('points', `0,${-th/2} ${tw/2},0 0,${th/2} ${-tw/2},0`);
+      diamond.setAttribute('fill', `${col}22`);
+      diamond.setAttribute('stroke', col);
+      diamond.setAttribute('stroke-width', '1.5');
+      g.appendChild(diamond);
+
+      const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('text-anchor','middle');
+      txt.setAttribute('dominant-baseline','middle');
+      txt.setAttribute('font-size','9');
+      txt.setAttribute('font-family','DM Mono, monospace');
+      txt.setAttribute('fill', col);
+      txt.setAttribute('font-weight','500');
+      txt.textContent = choiceText.length > 18 ? choiceText.slice(0,17)+'…' : choiceText;
+      g.appendChild(txt);
+      svgEl.appendChild(g);
+    } else if (ctype === 'condition') {
+      // Hexagon condition node
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.setAttribute('transform', `translate(${mx},${my})`);
+      g.style.cursor = 'pointer';
+      g.addEventListener('click', (e) => { e.stopPropagation(); openConnEditor(conn, mx, my); });
+
+      const hex = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      const r = 14;
+      const pts = Array.from({length:6},(_,i)=>{
+        const a2 = Math.PI/3*i - Math.PI/6;
+        return `${Math.cos(a2)*r},${Math.sin(a2)*r}`;
+      }).join(' ');
+      hex.setAttribute('points', pts);
+      hex.setAttribute('fill', `${col}18`);
+      hex.setAttribute('stroke', col);
+      hex.setAttribute('stroke-width', '1.5');
+      hex.setAttribute('stroke-dasharray', '3 2');
+      g.appendChild(hex);
+
+      const condLabel = conn.label || 'if';
+      const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('text-anchor','middle');
+      txt.setAttribute('dominant-baseline','middle');
+      txt.setAttribute('font-size','8');
+      txt.setAttribute('font-family','DM Mono, monospace');
+      txt.setAttribute('fill', col);
+      txt.textContent = condLabel.length > 10 ? condLabel.slice(0,9)+'…' : condLabel;
+      g.appendChild(txt);
+      svgEl.appendChild(g);
+    } else if (conn.label) {
+      // Plain label pill
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.style.cursor = 'pointer';
+      g.addEventListener('click', (e) => { e.stopPropagation(); openConnEditor(conn, mx, my); });
+
+      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      const tw = conn.label.length * 5.5 + 14;
+      rect.setAttribute('x', mx - tw/2); rect.setAttribute('y', my - 10);
+      rect.setAttribute('width', tw); rect.setAttribute('height', 16);
+      rect.setAttribute('rx', 4);
+      rect.setAttribute('fill', 'rgba(13,17,23,0.85)');
+      rect.setAttribute('stroke', col); rect.setAttribute('stroke-width', '0.8');
+      g.appendChild(rect);
+
+      const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x', mx); txt.setAttribute('y', my-1);
+      txt.setAttribute('text-anchor','middle');
+      txt.setAttribute('font-size','9');
+      txt.setAttribute('font-family','DM Mono, monospace');
+      txt.setAttribute('fill', col);
+      txt.textContent = conn.label;
+      g.appendChild(txt);
+      svgEl.appendChild(g);
+    } else {
+      // Invisible click zone for unlabeled connections
+      const hitzone = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      hitzone.setAttribute('cx', mx); hitzone.setAttribute('cy', my);
+      hitzone.setAttribute('r', '10');
+      hitzone.setAttribute('fill', 'transparent');
+      hitzone.style.cursor = 'pointer';
+      hitzone.addEventListener('click', (e) => { e.stopPropagation(); openConnEditor(conn, mx, my); });
+      svgEl.appendChild(hitzone);
     }
   }
 }
+
+const CONN_TYPE_COLORS = {
+  flow:      '#4f8ef7',
+  choice:    '#4fdc8e',
+  condition: '#f7c84f',
+  ref:       '#8a9ab5',
+};
 
 // Connect mode
 function toggleConnectMode() {
@@ -1104,11 +1615,11 @@ function handleConnect(id) {
     if (el) el.style.borderColor = 'var(--c-route)';
   } else {
     if (connectFrom === id) { connectFrom = null; return; }
-    const label = prompt('Подпись связи (необязательно):') || '';
-    connections.push({ id: newId(), from: connectFrom, to: id, label, color: '#4f8ef7', style: 'solid' });
+    const newConn = { id: newId(), from: connectFrom, to: id, label: '', color: '#4fdc8e', style: 'solid', ctype: 'flow' };
+    connections.push(newConn);
     renderConnections();
     scheduleSave();
-    toast('Связь создана');
+    toast('Связь создана — кликните на линию для настройки');
     const el = document.getElementById('card-'+connectFrom);
     if (el) el.style.borderColor = '';
     connectFrom = null;
@@ -1172,10 +1683,34 @@ function openInspector(id) {
         ${connections.filter(c=>c.from===id||c.to===id).map(c=>{
           const other = c.from===id ? cards[c.to] : cards[c.from];
           const dir = c.from===id ? '→' : '←';
-          return `<div style="padding:4px 0;border-bottom:1px solid var(--border)">${dir} ${other?.title||'?'} ${c.label?'· '+c.label:''}</div>`;
+          const typeIcons = {flow:'→',choice:'◆',condition:'⬡',ref:'⤳'};
+          const tc = CONN_TYPE_COLORS[c.ctype||'flow'] || '#4f8ef7';
+          const icon = typeIcons[c.ctype||'flow'] || '→';
+          const lbl = c.choiceText || c.label || '';
+          return `<div style="padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center">
+            <span style="color:${tc};font-size:11px">${icon}</span>
+            <span style="flex:1">${other?.title||'?'}</span>
+            ${lbl ? `<span style="color:var(--text3);font-size:9px">${escHtml(lbl)}</span>` : ''}
+          </div>`;
         }).join('') || '<span>Нет связей</span>'}
       </div>
     </div>
+    ${(c.type==='character'||c.type==='background') ? `
+    <div class="insp-section">
+      <div class="insp-label">Изображение</div>
+      ${c.image ? `<div style="position:relative"><img src="${c.image}" style="width:100%;border-radius:8px;object-fit:cover;max-height:160px"><button onclick="removeCardImage('${id}');openInspector('${id}')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.7);border:none;color:white;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px">✕ Удалить</button></div>` :
+      `<label style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:60px;border:1.5px dashed var(--border2);border-radius:8px;cursor:pointer;color:var(--text3);font-size:11px;transition:all .15s" onmouseenter="this.style.borderColor='var(--border3)'" onmouseleave="this.style.borderColor='var(--border2)'">
+        🖼 Загрузить референс
+        <input type="file" accept="image/*" style="display:none" onchange="uploadCardImage('${id}',this);setTimeout(()=>openInspector('${id}'),100)">
+      </label>`}
+    </div>` : ''}
+    ${c.type==='location' && c.children && c.children.length ? `
+    <div class="insp-section">
+      <div class="insp-label">Содержит</div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        ${c.children.map(cid => cards[cid] ? `<div style="padding:5px 8px;background:var(--surface);border-radius:6px;font-size:10px;cursor:pointer;color:var(--text2)" onclick="jumpToCard('${cid}')">${escHtml(cards[cid].title)}</div>` : '').join('')}
+      </div>
+    </div>` : ''}
     <div class="insp-section" style="padding-top:8px;border-top:1px solid var(--border)">
       <button class="btn btn-danger" style="width:100%;font-size:11px" onclick="deleteCard('${id}'); closeInspector()">Удалить карточку</button>
     </div>
@@ -1501,19 +2036,546 @@ function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// Expose to window for inline handlers
-Object.assign(window, {
-  addCard, deleteCard, duplicateCard, openInspector, closeInspector,
-  updateCard, updateCardSize, setCardColor, addTag, removeTag,
-  toggleConnectMode, toggleSearch, doSearch, jumpToCard,
-  fitAll, undoAction, clearBoard, closeModal,
+// ════════════════════════════════
+//  ANCHOR DRAG CONNECT
+// ════════════════════════════════
+
+function getAnchorPoint(cardId, side) {
+  const c = cards[cardId];
+  if (!c) return null;
+  switch(side) {
+    case 'top':    return { x: c.x + c.w/2, y: c.y };
+    case 'bottom': return { x: c.x + c.w/2, y: c.y + c.h };
+    case 'left':   return { x: c.x,          y: c.y + c.h/2 };
+    case 'right':  return { x: c.x + c.w,    y: c.y + c.h/2 };
+    default:       return cardCenter(cardId);
+  }
+}
+
+function startAnchorDrag(fromId, anchorEl, e) {
+  const side = anchorEl.dataset.anchor;
+  const startPt = getAnchorPoint(fromId, side);
+  dragConnLine.style.display = 'block';
+
+  function onMove(e) {
+    const rect = outerEl.getBoundingClientRect();
+    const mx = (e.clientX - rect.left - panX) / scale;
+    const my = (e.clientY - rect.top  - panY) / scale;
+    dragConnLine.setAttribute('d', `M${startPt.x},${startPt.y} Q${(startPt.x+mx)/2},${Math.min(startPt.y,my)-40} ${mx},${my}`);
+  }
+
+  function onUp(e) {
+    dragConnLine.style.display = 'none';
+    dragConnLine.setAttribute('d','');
+    // Find target card under cursor
+    const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.card');
+    if (target) {
+      const toId = target.id.replace('card-','');
+      if (toId !== fromId) {
+        const newConn2 = { id: newId(), from: fromId, to: toId, label: '', color: '#4fdc8e', style: 'solid', ctype: 'flow' };
+        connections.push(newConn2);
+        renderConnections(); scheduleSave();
+        toast('Связь создана — кликните на линию для настройки');
+      }
+    }
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+// ════════════════════════════════
+//  IMAGE UPLOAD
+// ════════════════════════════════
+function uploadCardImage(id, input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2*1024*1024) { toast('Изображение слишком большое (макс. 2 МБ)'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    cards[id].image = e.target.result;
+    renderCard(cards[id]);
+    scheduleSave();
+    toast('Изображение добавлено');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeCardImage(id) {
+  delete cards[id].image;
+  renderCard(cards[id]);
+  scheduleSave();
+}
+
+// ════════════════════════════════
+//  VIEW SWITCHING
+// ════════════════════════════════
+let currentView = 'board';
+
+function switchView(view) {
+  currentView = view;
+  const boardOuter = document.getElementById('board-outer');
+  const timelineOuter = document.getElementById('timeline-outer');
+  document.getElementById('view-board-btn').classList.toggle('active', view==='board');
+  document.getElementById('view-timeline-btn').classList.toggle('active', view==='timeline');
+  if (view === 'board') {
+    boardOuter.style.display = '';
+    timelineOuter.classList.remove('active');
+  } else {
+    boardOuter.style.display = 'none';
+    timelineOuter.classList.add('active');
+    renderTimeline();
+  }
+}
+
+// ════════════════════════════════
+//  TIMELINE
+// ════════════════════════════════
+function renderTimeline() {
+  const inner = document.getElementById('timeline-inner');
+  inner.innerHTML = '';
+
+  // Group scenes by act tag, or just all scenes
+  const scenes = Object.values(cards).filter(c => c.type === 'scene');
+  if (scenes.length === 0) {
+    inner.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:60px">Нет сцен. Создайте карточки типа «Сцена» на доске.</div>';
+    return;
+  }
+
+  // Find act groups by tags
+  const actMap = {};
+  for (const sc of scenes) {
+    const actTag = sc.tags.find(t => t.toLowerCase().startsWith('акт') || t.toLowerCase().startsWith('act') || t.toLowerCase().startsWith('глава')) || 'Акт 1';
+    if (!actMap[actTag]) actMap[actTag] = [];
+    actMap[actTag].push(sc);
+  }
+
+  for (const [actName, actScenes] of Object.entries(actMap)) {
+    const group = document.createElement('div');
+    group.className = 'tl-act-group';
+
+    const label = document.createElement('div');
+    label.className = 'tl-act-label';
+    label.textContent = actName;
+    group.appendChild(label);
+
+    const row = document.createElement('div');
+    row.className = 'tl-scenes-row';
+
+    for (const sc of actScenes) {
+      const col = resolveColor(sc.color);
+      const card = document.createElement('div');
+      card.className = 'tl-card';
+      card.dataset.id = sc.id;
+      card.innerHTML = `
+        <div class="tl-card-accent" style="background:${col}"></div>
+        <div class="tl-card-type">Сцена</div>
+        <div class="tl-card-title">${escHtml(sc.title)}</div>
+        ${sc.body ? `<div class="tl-card-body">${escHtml(sc.body)}</div>` : ''}
+        <div class="tl-tick"></div>
+        <div class="tl-dot" style="background:${col}"></div>
+      `;
+      card.style.setProperty('--tl-color', col);
+      card.addEventListener('dblclick', () => { switchView('board'); setTimeout(()=>jumpToCard(sc.id),200); });
+      attachTimelineDrag(card, sc.id, actScenes, row);
+      row.appendChild(card);
+    }
+
+    // Add scene button
+    const addBtn = document.createElement('button');
+    addBtn.className = 'tl-add-btn';
+    addBtn.title = 'Добавить сцену';
+    addBtn.textContent = '+';
+    addBtn.onclick = () => {
+      const id = addCard('scene', { tags: [actName] });
+      switchView('board');
+      setTimeout(() => jumpToCard(id), 200);
+    };
+    row.appendChild(addBtn);
+
+    group.appendChild(row);
+    inner.appendChild(group);
+  }
+}
+
+function resolveColor(col) {
+  if (!col) return '#4fdc8e';
+  if (col.startsWith('var(')) {
+    const map = { '--c-loc':'#4f8ef7','--c-char':'#f76b4f','--c-scene':'#4fdc8e','--c-note':'#f7c84f','--c-item':'#c44ff7','--c-music':'#f74fa8','--c-route':'#4ff7e8','--c-bg':'#f7a34f' };
+    const key = col.replace('var(','').replace(')','');
+    return map[key] || '#4fdc8e';
+  }
+  return col;
+}
+
+function attachTimelineDrag(cardEl, id, actScenes, row) {
+  let dragging = false, startX = 0, origIdx = 0;
+  cardEl.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    dragging = true;
+    startX = e.clientX;
+    origIdx = actScenes.indexOf(cards[id]);
+    cardEl.classList.add('dragging-tl');
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 10) cardEl.style.transform = `translateX(${dx}px)`;
+  });
+  document.addEventListener('mouseup', e => {
+    if (!dragging) return;
+    dragging = false;
+    cardEl.classList.remove('dragging-tl');
+    cardEl.style.transform = '';
+    const dx = e.clientX - startX;
+    const moveCards = Math.round(dx / 184);
+    if (moveCards !== 0) {
+      const idx = actScenes.indexOf(cards[id]);
+      const newIdx = Math.max(0, Math.min(actScenes.length-1, idx + moveCards));
+      actScenes.splice(idx, 1);
+      actScenes.splice(newIdx, 0, cards[id]);
+      // Update x positions on board
+      actScenes.forEach((sc, i) => {
+        sc.x = 200 + i * 260;
+      });
+      scheduleSave();
+      renderTimeline();
+    }
+  });
+}
+
+// ════════════════════════════════
+//  EXPORT
+// ════════════════════════════════
+function toggleExportPanel() {
+  document.getElementById('export-panel').classList.toggle('open');
+}
+
+function exportMarkdown() {
+  const lines = [`# ${document.getElementById('project-name').value || 'VN Board'}\n`];
+  const groups = {};
+  for (const c of Object.values(cards)) {
+    if (!groups[c.type]) groups[c.type] = [];
+    groups[c.type].push(c);
+  }
+  const order = ['scene','character','location','background','item','music','route','note'];
+  for (const type of order) {
+    if (!groups[type]) continue;
+    const m = TYPE_META[type];
+    lines.push(`## ${m.label}ы\n`);
+    for (const c of groups[type]) {
+      lines.push(`### ${c.title}`);
+      if (c.status && c.status !== '—') lines.push(`*Статус: ${c.status}*`);
+      if (c.tags.length) lines.push(`Теги: ${c.tags.join(', ')}`);
+      if (c.body) lines.push(`\n${c.body}`);
+      if (c.locationId && cards[c.locationId]) lines.push(`*Локация: ${cards[c.locationId].title}*`);
+      lines.push('');
+    }
+  }
+  // Connections
+  if (connections.length) {
+    lines.push('## Связи\n');
+    for (const conn of connections) {
+      const from = cards[conn.from]?.title || '?';
+      const to   = cards[conn.to]?.title   || '?';
+      lines.push(`- **${from}** → **${to}**${conn.label ? ` _(${conn.label})_` : ''}`);
+    }
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (document.getElementById('project-name').value || 'vn-board') + '.md';
+  a.click();
+  toast('Экспорт в Markdown готов!');
+}
+
+function exportJSON() {
+  const data = {
+    projectName: document.getElementById('project-name').value,
+    cards, connections,
+    exportedAt: new Date().toISOString()
+  };
+  // Strip images from JSON to keep it manageable
+  const exportCards = {};
+  for (const [k, c] of Object.entries(cards)) {
+    exportCards[k] = { ...c };
+    delete exportCards[k].image;
+  }
+  data.cards = exportCards;
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (document.getElementById('project-name').value || 'vn-board') + '.json';
+  a.click();
+  toast('JSON экспортирован!');
+}
+
+async function exportPNG() {
+  toast('Генерация PNG… (используйте Ctrl+P → «Сохранить как PDF» для больших досок)');
+  // Use html2canvas via CDN or fall back to print
+  try {
+    // Try to use browser print which is most reliable
+    const style = document.createElement('style');
+    style.id = 'print-style';
+    style.textContent = `
+      @media print {
+        #inspector, #minimap, #toolbar, #ctx-menu, #search-panel,
+        #connect-hint, #toast-container, #modal-overlay, #hint, #export-panel,
+        #header-right, #toolbar { display: none !important; }
+        #board-outer { position: static !important; overflow: visible !important; }
+        body { overflow: visible !important; }
+      }
+    `;
+    document.head.appendChild(style);
+    window.print();
+    setTimeout(() => style.remove(), 1000);
+  } catch(e) {
+    toast('Используйте Ctrl+P для сохранения как PNG/PDF');
+  }
+}
+
+
+// ════════════════════════════════
+//  CONNECTION EDITOR
+// ════════════════════════════════
+let editingConn = null;
+
+function openConnEditor(conn, mx, my) {
+  editingConn = conn;
+  const ed = document.getElementById('conn-editor');
+  
+  // Position near click, keep on screen
+  const ex = Math.min(mx * scale + panX + 20, window.innerWidth - 320);
+  const ey = Math.min(my * scale + panY - 60, window.innerHeight - 380);
+  ed.style.left = Math.max(10, ex) + 'px';
+  ed.style.top  = Math.max(62, ey) + 'px';
+
+  // Set type buttons
+  const ctype = conn.ctype || 'flow';
+  document.querySelectorAll('.conn-type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.ctype === ctype);
+  });
+
+  // Show/hide choice text row
+  document.getElementById('conn-choice-row').style.display = ctype === 'choice' ? 'block' : 'none';
+
+  // Fill fields
+  document.getElementById('conn-label-input').value = conn.label || '';
+  document.getElementById('conn-choice-input').value = conn.choiceText || '';
+  document.getElementById('conn-style-select').value = conn.style || 'solid';
+
+  // Build color picker
+  const picker = document.getElementById('conn-color-picker');
+  picker.innerHTML = COLORS.concat(['#4fdc8e','#f7c84f','#8a9ab5']).map(col =>
+    `<div class="conn-color-dot ${conn.color===col?'active':''}" style="background:${col}"
+      onclick="pickConnColor('${col}')"></div>`
+  ).join('');
+
+  ed.classList.add('open');
+}
+
+function closeConnEditor() {
+  document.getElementById('conn-editor').classList.remove('open');
+  editingConn = null;
+}
+
+function setConnType(ctype) {
+  if (!editingConn) return;
+  editingConn.ctype = ctype;
+  // Auto color
+  editingConn.color = CONN_TYPE_COLORS[ctype] || '#4f8ef7';
+  // Auto style
+  editingConn.style = ctype === 'ref' ? 'dashed' : 'solid';
+  document.querySelectorAll('.conn-type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.ctype === ctype);
+  });
+  document.getElementById('conn-choice-row').style.display = ctype === 'choice' ? 'block' : 'none';
+  // Rebuild color picker
+  const picker = document.getElementById('conn-color-picker');
+  picker.innerHTML = COLORS.concat(['#4fdc8e','#f7c84f','#8a9ab5']).map(col =>
+    `<div class="conn-color-dot ${editingConn.color===col?'active':''}" style="background:${col}"
+      onclick="pickConnColor('${col}')"></div>`
+  ).join('');
+  renderConnections(); scheduleSave();
+}
+
+function updateEditingConn() {
+  if (!editingConn) return;
+  editingConn.label = document.getElementById('conn-label-input').value;
+  editingConn.choiceText = document.getElementById('conn-choice-input').value;
+  editingConn.style = document.getElementById('conn-style-select').value;
+  renderConnections(); scheduleSave();
+}
+
+function pickConnColor(col) {
+  if (!editingConn) return;
+  editingConn.color = col;
+  document.querySelectorAll('.conn-color-dot').forEach(d => {
+    d.classList.toggle('active', d.style.background === col || d.style.backgroundColor === col);
+  });
+  renderConnections(); scheduleSave();
+}
+
+function deleteEditingConn() {
+  if (!editingConn) return;
+  pushUndo();
+  connections = connections.filter(c => c !== editingConn);
+  closeConnEditor();
+  renderConnections(); scheduleSave();
+  toast('Связь удалена');
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#conn-editor')) closeConnEditor();
 });
+
+// ════════════════════════════════
+//  MULTIPLAYER PRESENCE
+// ════════════════════════════════
+const PEER_COLORS = ['#f76b4f','#4fdc8e','#f7c84f','#c44ff7','#f74fa8','#4ff7e8','#f7a34f'];
+let myPeerId = 'u_' + Math.random().toString(36).slice(2, 8);
+let myPeerName = 'Гость ' + myPeerId.slice(2, 5).toUpperCase();
+let myColorIdx = Math.floor(Math.random() * PEER_COLORS.length);
+let peerRefs = {};
+let presenceInitialized = false;
+
+function initPresence() {
+  try {
+    const presenceRef = ref(rtdb, `boards/${PROJECT_ID}/presence/${myPeerId}`);
+    const myPresence = {
+      name: myPeerName,
+      color: PEER_COLORS[myColorIdx],
+      x: 0, y: 0,
+      ts: Date.now()
+    };
+    set(presenceRef, myPresence);
+    onDisconnect(presenceRef).remove();
+
+    // Watch all peers
+    const allPresenceRef = ref(rtdb, `boards/${PROJECT_ID}/presence`);
+    onValue(allPresenceRef, (snap) => {
+      const data = snap.val() || {};
+      updatePresenceUI(data);
+    });
+
+    // Track own mouse
+    outerEl.addEventListener('mousemove', (e) => {
+      const rect = outerEl.getBoundingClientRect();
+      const bx = Math.round((e.clientX - rect.left - panX) / scale);
+      const by = Math.round((e.clientY - rect.top  - panY) / scale);
+      // Throttle to 30fps
+      if (!initPresence._t || Date.now() - initPresence._t > 33) {
+        initPresence._t = Date.now();
+        set(ref(rtdb, `boards/${PROJECT_ID}/presence/${myPeerId}/x`), bx);
+        set(ref(rtdb, `boards/${PROJECT_ID}/presence/${myPeerId}/y`), by);
+        set(ref(rtdb, `boards/${PROJECT_ID}/presence/${myPeerId}/ts`), Date.now());
+      }
+    });
+
+    presenceInitialized = true;
+  } catch(e) {
+    console.warn('Presence init failed:', e);
+  }
+}
+
+function updatePresenceUI(data) {
+  const board = document.getElementById('board');
+  const bar = document.getElementById('presence-bar');
+
+  // Remove stale peer cursors
+  document.querySelectorAll('.peer-cursor').forEach(el => el.remove());
+
+  let peerCount = 0;
+  const avatars = [];
+
+  for (const [pid, peer] of Object.entries(data)) {
+    if (pid === myPeerId) continue;
+    // Skip peers inactive > 60s
+    if (peer.ts && Date.now() - peer.ts > 60000) continue;
+    peerCount++;
+
+    const col = peer.color || '#f76b4f';
+
+    // Cursor on board
+    const cursor = document.createElement('div');
+    cursor.className = 'peer-cursor';
+    cursor.id = 'cursor-' + pid;
+    cursor.style.left = (peer.x || 0) + 'px';
+    cursor.style.top  = (peer.y || 0) + 'px';
+    cursor.innerHTML = `
+      <svg class="peer-cursor-svg" viewBox="0 0 20 20" fill="none">
+        <path d="M4 2L16 10L10 11L7 18L4 2Z" fill="${col}" stroke="rgba(0,0,0,0.4)" stroke-width="1"/>
+      </svg>
+      <div class="peer-cursor-label" style="background:${col}">${escHtml(peer.name||'?')}</div>
+    `;
+    board.appendChild(cursor);
+
+    // Avatar chip
+    avatars.push(`<div class="presence-dot" style="background:${col}" data-name="${escHtml(peer.name||'?')}">${(peer.name||'?').slice(0,2).toUpperCase()}</div>`);
+  }
+
+  // Update bar
+  const countEl = document.getElementById('presence-count');
+  if (peerCount > 0) {
+    bar.innerHTML = avatars.join('') + `<span id="presence-count" style="font-size:10px;color:var(--text3)">${peerCount} онлайн</span>`;
+  } else {
+    bar.innerHTML = '<span id="presence-count" style="font-size:10px;color:var(--text3)">Только вы</span>';
+  }
+}
+
 
 // ════════════════════════════════
 //  INIT
 // ════════════════════════════════
 applyTransform();
-loadFromFirebase();
+loadFromFirebase().then(() => initPresence());
 </script>
+
+<!-- CONNECTION EDITOR -->
+<div id="conn-editor">
+  <h4>✎ Редактор связи</h4>
+  <div class="conn-type-grid">
+    <button class="conn-type-btn active" data-ctype="flow" onclick="setConnType('flow')">
+      <span class="ct-icon">→</span>Переход
+    </button>
+    <button class="conn-type-btn" data-ctype="choice" onclick="setConnType('choice')">
+      <span class="ct-icon">◆</span>Выбор
+    </button>
+    <button class="conn-type-btn" data-ctype="condition" onclick="setConnType('condition')">
+      <span class="ct-icon">⬡</span>Условие
+    </button>
+    <button class="conn-type-btn" data-ctype="ref" onclick="setConnType('ref')">
+      <span class="ct-icon">⤳</span>Отсылка
+    </button>
+  </div>
+  <div class="conn-field-row">
+    <div class="conn-field-label">Текст / условие</div>
+    <input class="conn-field" id="conn-label-input" placeholder="Если выбор А…" oninput="updateEditingConn()">
+  </div>
+  <div class="conn-field-row" id="conn-choice-row" style="display:none">
+    <div class="conn-field-label">Текст выбора игрока</div>
+    <input class="conn-field" id="conn-choice-input" placeholder="«Я соглашусь»" oninput="updateEditingConn()">
+  </div>
+  <div class="conn-field-row">
+    <div class="conn-field-label">Стиль линии</div>
+    <select class="conn-field" id="conn-style-select" onchange="updateEditingConn()">
+      <option value="solid">Сплошная</option>
+      <option value="dashed">Пунктир</option>
+      <option value="dotted">Точки</option>
+    </select>
+  </div>
+  <div class="conn-field-row">
+    <div class="conn-field-label">Цвет</div>
+    <div class="conn-colors" id="conn-color-picker"></div>
+  </div>
+  <div class="conn-editor-btns">
+    <button class="btn btn-danger" onclick="deleteEditingConn()">Удалить</button>
+    <button class="btn btn-primary" onclick="closeConnEditor()">Готово</button>
+  </div>
+</div>
+
 </body>
 </html>
