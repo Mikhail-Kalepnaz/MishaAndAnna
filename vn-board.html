@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -294,8 +295,79 @@ body {
   border-radius: 0 0 4px 0;
 }
 
-/* Location cards (larger container type) */
-.card.type-location {
+/* ═══════════════════════════ ACT STRIPE ═══════════════════════════ */
+.card-act-stripe {
+  height: 3px; margin: 0 12px 4px; border-radius: 2px; flex-shrink: 0; opacity: 0.85;
+}
+.card-act-row {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
+}
+.card-act-label {
+  font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; flex-shrink: 0;
+}
+.card-act-pills { display: flex; gap: 3px; flex-wrap: wrap; }
+.card-act-pill {
+  font-size: 9px; padding: 2px 6px; border-radius: 4px;
+  border: 1px solid var(--border2); background: none; color: var(--text3);
+  cursor: pointer; font-family: 'DM Mono', monospace; transition: all .1s;
+  line-height: 1.4;
+}
+.card-act-pill:hover { border-color: var(--border3); color: var(--text2); }
+.card-act-pill.active { font-weight: 600; }
+
+/* ═══════════════════════════ SCENE TEMPLATE MODAL ═══════════════════════════ */
+#scene-tpl-modal {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+}
+#scene-tpl-modal.open { display: flex; }
+#scene-tpl-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 24px;
+  width: 520px; max-width: calc(100vw - 40px);
+  box-shadow: 0 32px 100px rgba(0,0,0,0.7);
+}
+#scene-tpl-box h3 {
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800;
+  color: var(--text); margin-bottom: 6px;
+}
+#scene-tpl-box p {
+  font-size: 11px; color: var(--text3); margin-bottom: 18px; line-height: 1.6;
+}
+.tpl-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;
+}
+.tpl-card {
+  padding: 12px 14px; border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: var(--bg2); cursor: pointer;
+  transition: all .15s;
+}
+.tpl-card:hover { border-color: var(--c-scene); background: rgba(79,220,142,0.05); }
+.tpl-card.selected { border-color: var(--c-scene); background: rgba(79,220,142,0.08); box-shadow: 0 0 0 1px var(--c-scene); }
+.tpl-card-icon { font-size: 18px; margin-bottom: 6px; }
+.tpl-card-name { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.tpl-card-desc { font-size: 10px; color: var(--text3); line-height: 1.5; }
+.tpl-footer { display: flex; gap: 8px; justify-content: flex-end; }
+.tpl-act-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.tpl-act-row label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
+.tpl-act-btns { display: flex; gap: 4px; }
+.tpl-act-btn {
+  font-size: 10px; padding: 4px 10px; border-radius: 5px;
+  border: 1px solid var(--border2); background: none; color: var(--text3);
+  cursor: pointer; font-family: 'DM Mono', monospace; transition: all .1s;
+}
+.tpl-act-btn:hover { border-color: var(--border3); color: var(--text2); }
+.tpl-act-btn.active { color: #000; border-color: transparent; font-weight: 700; }
+
+/* Location image — full-width style */
+.card.type-location .card-image-area img { max-height: 100px; border-radius: 6px 6px 0 0; margin: 0; }
+.card.type-location .card-image-area { margin: 0 0 6px 0; border-radius: 0; }
+.card.type-location .card-image-area .card-image-upload { border-radius: 0; border-left: none; border-right: none; border-top: none; border-bottom: 1px dashed var(--border2); }
+
   background: rgba(13,17,23,0.8);
   border-style: dashed;
 }
@@ -846,6 +918,9 @@ body.connect-mode .card:hover { border-color: var(--c-route); }
       <button class="tb-btn" onclick="addCard('scene')" title="Сцена (S)">
         <div class="ic" style="background:var(--c-scene-bg);color:var(--c-scene);">◆</div> Сцена
       </button>
+      <button class="tb-btn" onclick="openSceneTpl()" title="Типовая сцена" style="color:var(--c-scene)">
+        <div class="ic" style="background:var(--c-scene-bg);color:var(--c-scene);">⊞</div> Шаблон
+      </button>
       <button class="tb-btn" onclick="addCard('note')" title="Заметка (N)">
         <div class="ic" style="background:var(--c-note-bg);color:var(--c-note);">▬</div> Заметка
       </button>
@@ -1094,6 +1169,8 @@ const boardEl = document.getElementById('board');
 const outerEl = document.getElementById('board-outer');
 const dragConnLine = document.getElementById('drag-conn-line');
 
+const ACT_COLORS = ['#4f8ef7','#f76b4f','#4fdc8e','#f7c84f','#c44ff7'];
+
 // Expose all functions to global scope immediately (functions are hoisted)
 // so inline onclick handlers always work regardless of later runtime errors
 Object.assign(window, {
@@ -1103,6 +1180,7 @@ Object.assign(window, {
   fitAll, undoAction, clearBoard, closeModal,
   switchView, toggleExportPanel, exportMarkdown, exportJSON, exportPNG,
   uploadCardImage, removeCardImage,
+  setCardAct, openSceneTpl, closeSceneTpl, applySceneTpl, selectTpl,
   openConnEditor, closeConnEditor, setConnType, updateEditingConn, pickConnColor, deleteEditingConn,
 });
 
@@ -1202,10 +1280,12 @@ function renderCard(c) {
       </div>
     </div>
     ${c.image ? `<div class="card-image-area"><img src="${c.image}" alt=""><button class="card-image-remove" onclick="removeCardImage('${c.id}')">✕</button></div>` :
-      (c.type === 'character' || c.type === 'background') ?
-      `<div class="card-image-area"><label class="card-image-upload" title="Загрузить изображение">🖼 Добавить картинку<input type="file" accept="image/*" style="display:none" onchange="uploadCardImage('${c.id}',this)"></label></div>` : ''}
+      (c.type === 'character' || c.type === 'background' || c.type === 'location') ?
+      `<div class="card-image-area"><label class="card-image-upload" title="Загрузить изображение">${c.type==='location'?'🗺':'🖼'} Добавить ${c.type==='location'?'арт локации':'картинку'}<input type="file" accept="image/*" style="display:none" onchange="uploadCardImage('${c.id}',this)"></label></div>` : ''}
+    ${c.type === 'scene' && c.act ? `<div class="card-act-stripe" style="background:${ACT_COLORS[(c.act-1)%ACT_COLORS.length]}"></div>` : ''}
     <div class="card-body-area">
-      <textarea class="card-textarea" placeholder="Описание, идеи, детали…">${escHtml(c.body)}</textarea>
+      ${c.type === 'scene' ? `<div class="card-act-row"><span class="card-act-label">Акт</span><div class="card-act-pills">${[1,2,3,4,5].map(n=>`<button class="card-act-pill ${c.act===n?'active':''}" style="${c.act===n?'background:'+ACT_COLORS[(n-1)%ACT_COLORS.length]+';color:#000;border-color:transparent':''}" onclick="setCardAct('${c.id}',${n})">${n}</button>`).join('')}<button class="card-act-pill ${!c.act?'active':''}" style="${!c.act?'background:var(--surface2);color:var(--text);border-color:var(--border3)':''}" onclick="setCardAct('${c.id}',null)">—</button></div></div>` : ''}
+      <textarea class="card-textarea" placeholder="${c.type==='scene'?'Краткое описание сцены…':'Описание, идеи, детали…'}">${escHtml(c.body)}</textarea>
     </div>
     ${c.type === 'location' && c.children && c.children.length ? `<div class="card-children-list">${c.children.map(cid => cards[cid] ? `<span class="child-chip" onclick="jumpToCard('${cid}')">${escHtml(cards[cid].title)}</span>` : '').join('')}</div>` : ''}
     <div class="card-tags">
@@ -1409,6 +1489,86 @@ function removeTag(id, tag) {
   renderCard(cards[id]);
   scheduleSave();
 }
+
+function setCardAct(id, act) {
+  cards[id].act = act;
+  renderCard(cards[id]);
+  if (inspectedCard === id) openInspector(id);
+  scheduleSave();
+}
+
+// ════════════════════════════════
+//  SCENE TEMPLATES
+// ════════════════════════════════
+const SCENE_TEMPLATES = [
+  { icon: '💬', name: 'Диалог', desc: 'Разговор между двумя персонажами', body: 'Персонаж А: ...\nПерсонаж Б: ...\n\nНастроение: ', tags: ['диалог'] },
+  { icon: '🎭', name: 'Монолог', desc: 'Внутренний монолог или речь персонажа', body: 'Персонаж думает / говорит...\n\nЭмоция: ', tags: ['монолог'] },
+  { icon: '◆', name: 'Ветка выбора', desc: 'Игрок выбирает один из вариантов', body: 'Вопрос / ситуация:\n\nВариант A: \nВариант B: \nВариант C: ', tags: ['выбор'] },
+  { icon: '⏮', name: 'Флэшбэк', desc: 'Воспоминание из прошлого', body: 'Время: [прошлое]\nМесто: \n\nСобытие: ', tags: ['флэшбэк'] },
+  { icon: '🌅', name: 'Вступление', desc: 'Открывающая сцена акта или главы', body: 'Время: \nМесто: \nАтмосфера: \n\nОписание:', tags: ['вступление'] },
+  { icon: '⚡', name: 'Кульминация', desc: 'Эмоциональная или сюжетная вершина', body: 'Конфликт достигает пика:\n\nЧто происходит: \nЭффект: ', tags: ['кульминация'] },
+  { icon: '🔀', name: 'Развилка', desc: 'Точка ветвления сюжета', body: 'Условие:\n  Путь A (если ...): \n  Путь B (если ...): ', tags: ['развилка'] },
+  { icon: '🎬', name: 'Финал', desc: 'Концовка маршрута или игры', body: 'Тип концовки: [хорошая / плохая / нейтральная]\n\nЧто случается: \nПоследние слова: ', tags: ['финал'] },
+];
+
+let _tplSelected = 0;
+let _tplAct = null;
+
+function openSceneTpl() {
+  _tplSelected = 0;
+  _tplAct = null;
+  const grid = document.getElementById('tpl-grid');
+  grid.innerHTML = SCENE_TEMPLATES.map((t, i) => `
+    <div class="tpl-card ${i===0?'selected':''}" onclick="selectTpl(${i})" data-idx="${i}">
+      <div class="tpl-card-icon">${t.icon}</div>
+      <div class="tpl-card-name">${t.name}</div>
+      <div class="tpl-card-desc">${t.desc}</div>
+    </div>`).join('');
+  // Act buttons
+  document.querySelectorAll('.tpl-act-btn').forEach(btn => {
+    const v = btn.dataset.act;
+    btn.className = 'tpl-act-btn' + ((!v&&!_tplAct)||v==_tplAct?' active':'');
+    if (v) {
+      btn.style.background = btn.classList.contains('active') ? ACT_COLORS[(+v-1)%ACT_COLORS.length] : '';
+    }
+    btn.onclick = () => {
+      _tplAct = v ? +v : null;
+      document.querySelectorAll('.tpl-act-btn').forEach(b => {
+        const bv = b.dataset.act;
+        const isActive = (!bv&&!_tplAct)||(bv&&+bv===_tplAct);
+        b.className = 'tpl-act-btn' + (isActive?' active':'');
+        b.style.background = (isActive && bv) ? ACT_COLORS[(+bv-1)%ACT_COLORS.length] : '';
+        b.style.color = (isActive && bv) ? '#000' : '';
+      });
+    };
+  });
+  document.getElementById('scene-tpl-modal').classList.add('open');
+}
+
+function selectTpl(idx) {
+  _tplSelected = idx;
+  document.querySelectorAll('.tpl-card').forEach((el, i) => el.classList.toggle('selected', i===idx));
+}
+
+function closeSceneTpl() {
+  document.getElementById('scene-tpl-modal').classList.remove('open');
+}
+
+function applySceneTpl() {
+  const tpl = SCENE_TEMPLATES[_tplSelected];
+  const tags = [...tpl.tags];
+  if (_tplAct) tags.push('акт ' + _tplAct);
+  const id = addCard('scene', {
+    title: tpl.name,
+    body: tpl.body,
+    tags,
+    act: _tplAct || undefined,
+  });
+  closeSceneTpl();
+  toast(`Сцена «${tpl.name}» создана`);
+  setTimeout(() => jumpToCard(id), 100);
+}
+
 
 // Selection
 function selectCard(id) {
@@ -1695,14 +1855,25 @@ function openInspector(id) {
         }).join('') || '<span>Нет связей</span>'}
       </div>
     </div>
-    ${(c.type==='character'||c.type==='background') ? `
+    ${(c.type==='character'||c.type==='background'||c.type==='location') ? `
     <div class="insp-section">
-      <div class="insp-label">Изображение</div>
+      <div class="insp-label">${c.type==='location'?'Арт локации':'Изображение'}</div>
       ${c.image ? `<div style="position:relative"><img src="${c.image}" style="width:100%;border-radius:8px;object-fit:cover;max-height:160px"><button onclick="removeCardImage('${id}');openInspector('${id}')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.7);border:none;color:white;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px">✕ Удалить</button></div>` :
       `<label style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:60px;border:1.5px dashed var(--border2);border-radius:8px;cursor:pointer;color:var(--text3);font-size:11px;transition:all .15s" onmouseenter="this.style.borderColor='var(--border3)'" onmouseleave="this.style.borderColor='var(--border2)'">
-        🖼 Загрузить референс
+        ${c.type==='location'?'🗺':'🖼'} ${c.type==='location'?'Загрузить арт локации':'Загрузить референс'}
         <input type="file" accept="image/*" style="display:none" onchange="uploadCardImage('${id}',this);setTimeout(()=>openInspector('${id}'),100)">
       </label>`}
+    </div>` : ''}
+    ${c.type==='scene' ? `
+    <div class="insp-section">
+      <div class="insp-label">Акт</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        ${[null,1,2,3,4,5].map(n => {
+          const isActive = c.act===n;
+          const col = n ? ACT_COLORS[(n-1)%ACT_COLORS.length] : null;
+          return `<button onclick="setCardAct('${id}',${n===null?'null':n});openInspector('${id}')"
+            style="padding:4px 12px;border-radius:6px;border:1px solid ${isActive&&col?col:'var(--border2)'};background:${isActive?(col||'var(--surface2)'):'none'};color:${isActive?(col?'#000':'var(--text)'):'var(--text3)'};font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;font-weight:${isActive?'700':'400'};transition:all .1s">${n===null?'—':n}</button>`}).join('')}
+      </div>
     </div>` : ''}
     ${c.type==='location' && c.children && c.children.length ? `
     <div class="insp-section">
@@ -2144,21 +2315,29 @@ function renderTimeline() {
     return;
   }
 
-  // Find act groups by tags
+  // Group scenes by act field, fallback to act tags
   const actMap = {};
   for (const sc of scenes) {
-    const actTag = sc.tags.find(t => t.toLowerCase().startsWith('акт') || t.toLowerCase().startsWith('act') || t.toLowerCase().startsWith('глава')) || 'Акт 1';
-    if (!actMap[actTag]) actMap[actTag] = [];
-    actMap[actTag].push(sc);
+    let actKey;
+    if (sc.act) {
+      actKey = 'Акт ' + sc.act;
+    } else {
+      const actTag = sc.tags.find(t => t.toLowerCase().startsWith('акт') || t.toLowerCase().startsWith('act') || t.toLowerCase().startsWith('глава'));
+      actKey = actTag || 'Без акта';
+    }
+    if (!actMap[actKey]) actMap[actKey] = { scenes: [], actNum: sc.act || null };
+    actMap[actKey].scenes.push(sc);
   }
 
-  for (const [actName, actScenes] of Object.entries(actMap)) {
+  for (const [actName, actData] of Object.entries(actMap)) {
+    const { scenes: actScenes, actNum } = actData;
+    const actColor = actNum ? ACT_COLORS[(actNum-1)%ACT_COLORS.length] : 'var(--text3)';
     const group = document.createElement('div');
     group.className = 'tl-act-group';
 
     const label = document.createElement('div');
     label.className = 'tl-act-label';
-    label.textContent = actName;
+    label.innerHTML = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${actColor};margin-right:7px;vertical-align:middle;box-shadow:0 0 6px ${actColor}55"></span>${actName}`;
     group.appendChild(label);
 
     const row = document.createElement('div');
@@ -2171,7 +2350,7 @@ function renderTimeline() {
       card.dataset.id = sc.id;
       card.innerHTML = `
         <div class="tl-card-accent" style="background:${col}"></div>
-        <div class="tl-card-type">Сцена</div>
+        <div class="tl-card-type">Сцена${sc.act ? ` · <span style="color:${ACT_COLORS[(sc.act-1)%ACT_COLORS.length]}">Акт ${sc.act}</span>` : ''}</div>
         <div class="tl-card-title">${escHtml(sc.title)}</div>
         ${sc.body ? `<div class="tl-card-body">${escHtml(sc.body)}</div>` : ''}
         <div class="tl-tick"></div>
@@ -2189,7 +2368,7 @@ function renderTimeline() {
     addBtn.title = 'Добавить сцену';
     addBtn.textContent = '+';
     addBtn.onclick = () => {
-      const id = addCard('scene', { tags: [actName] });
+      const id = addCard('scene', { tags: actNum ? ['акт '+actNum] : [], act: actNum || undefined });
       switchView('board');
       setTimeout(() => jumpToCard(id), 200);
     };
@@ -2533,6 +2712,30 @@ function updatePresenceUI(data) {
 applyTransform();
 loadFromFirebase().then(() => initPresence());
 </script>
+
+<!-- SCENE TEMPLATE MODAL -->
+<div id="scene-tpl-modal">
+  <div id="scene-tpl-box">
+    <h3>◆ Добавить типовую сцену</h3>
+    <p>Выберите шаблон и акт — карточка сцены заполнится автоматически.</p>
+    <div class="tpl-grid" id="tpl-grid"></div>
+    <div class="tpl-act-row">
+      <label>Акт</label>
+      <div class="tpl-act-btns" id="tpl-act-btns">
+        <button class="tpl-act-btn active" data-act="">—</button>
+        <button class="tpl-act-btn" data-act="1">1</button>
+        <button class="tpl-act-btn" data-act="2">2</button>
+        <button class="tpl-act-btn" data-act="3">3</button>
+        <button class="tpl-act-btn" data-act="4">4</button>
+        <button class="tpl-act-btn" data-act="5">5</button>
+      </div>
+    </div>
+    <div class="tpl-footer">
+      <button class="btn btn-ghost" onclick="closeSceneTpl()">Отмена</button>
+      <button class="btn btn-primary" onclick="applySceneTpl()">Создать сцену</button>
+    </div>
+  </div>
+</div>
 
 <!-- CONNECTION EDITOR -->
 <div id="conn-editor">
